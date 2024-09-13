@@ -13,7 +13,8 @@ const { response } = require("express");
 const http = require("http");
 const { client } = require("websocket");
 
-console.log("PORT : " + process.env.PORT)
+console.log("PORT : " + process.env.PORT);
+wsPort = process.env.PORT;
 
 //const app = require("express")();
 //app.get("/", (req, res)=>res.sendFile(__dirname + "/index.html"))
@@ -21,7 +22,7 @@ console.log("PORT : " + process.env.PORT)
 
 const websocketServer = require("websocket").server
 const httpServer = http.createServer();
-httpServer.listen(9090, () => console.log("Listening... on 9090"))
+httpServer.listen(wsPort, () => console.log("Listening on " + wsPort))
 
 //hashmap
 const clients = {};
