@@ -14,23 +14,33 @@ const http = require("http");
 const { client } = require("websocket");
 
 console.log("PORT : " + process.env.PORT);
-wsPort =  Number(process.env.PORT);
+PORT =  Number(process.env.PORT);
+PORT = 8080;
+WS_PORT = 9090
 
-//const app = require("express")();
-//app.get("/", (req, res)=>res.sendFile(__dirname + "/index.html"))
-//app.listen(9091, ()=>console.log("Listening on http port 9091"))
+const express = require('express')
+const webserver = express()
+
+
+webserver.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+});
+
+webserver.get("/", (req, res) => {
+    res.sendFile('/Client/index.html', { root: __dirname });
+});
+
+webserver.use(express.static(__dirname + "/Client/"));
+
 
 const websocketServer = require("websocket").server
 const httpServer = http.createServer();
-httpServer.listen(wsPort, () => console.log("Listening on " + wsPort))
+httpServer.listen(WS_PORT, () => console.log("Listening on " + WS_PORT))
 
 
-//const wsServer = new websocketServer({
-//    "httpServer": httpServer
-//})
-
-import { WebSocketServer } from "ws"
-const wsServer = new WebSocketServer({ port: Number(process.env.PORT) })
+const wsServer = new websocketServer({
+    "httpServer": httpServer
+})
 
 //hashmap
 const clients = {};
@@ -62,6 +72,7 @@ wsServer.on("request", request => {
 
             const con = clients[clientId].connection;
             con.send(JSON.stringify(payLoad));
+            console.log("Game Created : " + gameId);
         }
 
         // a user wants to join a game
@@ -74,6 +85,7 @@ wsServer.on("request", request => {
                 console.log("max players reached")
                 return;
             }
+            console.log("Client joined : " + clientId);
             const color = colorArray[game.clients.length]
             game.clients[clientId] = ({
                 "clientId": clientId,
