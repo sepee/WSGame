@@ -6,8 +6,16 @@
     <title>Document</title>
 </head>
 <body>
-    <h1>Game</h1>
-    <h2>Game ID : <div id="txtGameId"> Not connected </div></h2>
+    
+    <div id="serverConnection">
+        <label>socket server : </label>
+        <input type="text" id="inputServerAddress" value="ws://localhost:9090">
+        <button id="btnConnect">Connect</button>
+        <br>
+    </div>
+
+    <h2>Game ID : <div id="txtGameId"> Not Joined </div></h2>
+
     <button id="btnCreate">New Game</button>
     <button id="btnJoin">Join Game</button>
     <input type="text" id="inputGameId">
@@ -21,24 +29,63 @@
     <script>
         let clientId = null
         let gameId = null
-        let ws = new WebSocket("https://wsgame-production.up.railway.app:9090")
+        let ws = null
         // HTML elements
+        const btnConnect = document.getElementById("btnConnect")
         const btnCreate = document.getElementById("btnCreate");
         const btnJoin = document.getElementById("btnJoin");
         const inputGameId = document.getElementById("inputGameId");
         const txtPlayers = document.getElementById("txtPlayers");
         const txtGameId = document.getElementById("txtGameId");
+        const inputServerAddress = document.getElementById("inputServerAddress");
+
+        btnConnect.addEventListener("click", e=> {
+            ws = new WebSocket(inputServerAddress.value)
+
+            document.getElementById("serverConnection").remove();
+
+              // recieve packets
+            ws.onmessage = message => {
+                const response = JSON.parse(message.data);
+                if (response.method === "connect"){
+                    clientId = response.clientId;
+                    console.log("Client id set successfully " + clientId);
+                }
+
+                if (response.method === "create"){
+                    game = response.game;
+                    gameId = game.id;
+                    console.log("Game successfully created with id " + game.id);
+                    console.log(response);
+                    txtGameId.innerText = gameId;
+                    inputGameId.value = gameId;
+                }
+
+                if (response.method === "join"){
+                    game = response.game;    
+                    gameId = game.id;
+                    console.log("someone joined the game ");
+                    console.log(response);
+                    txtPlayers.innerText = game.clients.length + " Players Joined";
+                    txtGameId.innerText = gameId;
+
+                    while(txtPlayers.firstChild) 
+                        txtPlayers.removeChild(txtPlayers.firstChild);
+                }
+
+                if (response.method === "move"){
+                    game = response.game;
+                    console.log(game);
+                }
+            }
+        })
 
         //wiring events
         btnJoin.addEventListener("click", e => {
-
-            if (gameId === null)
-                gameId = inputGameId.value;
-
             const payLoad = {
                 "method": "join",
                 "clientId": clientId,
-                "gameId": gameId
+                "gameId": inputGameId.value
             }
 
             ws.send(JSON.stringify(payLoad));
@@ -51,47 +98,7 @@
             }
             ws.send(JSON.stringify(payLoad));
         })
-
-     
-        // recieve packets
-        ws.onmessage = message => {
-            const response = JSON.parse(message.data);
-            if (response.method === "connect"){
-                clientId = response.clientId;
-                console.log("Client id set successfully " + clientId);
-            }
-
-            if (response.method === "create"){
-                game = response.game;
-                gameId = game.id;
-                console.log("Game successfully created with id " + game.id);
-                console.log(response);
-                txtGameId.innerText = gameId;
-            }
-
-            if (response.method === "join"){
-                game = response.game;    
-                console.log("someone joined the game ");
-                console.log(response);
-                txtPlayers.innerText = game.clients.length + " Players Joined";
-
-                while(txtPlayers.firstChild) 
-                    txtPlayers.removeChild(txtPlayers.firstChild);
-
-                //game.clients.forEach (c => {
-                //        const playerElement = document.createElement("div")
-                //        playerElement.style.width = "200px";
-                //        playerElement.style.backgroundColor = c.color;
-                //        playerElement.textContent = c.clientId;
-                //        txtPlayers.appendChild(playerElement);
-                //})
-            }
-
-            if (response.method === "move"){
-                game = response.game;
-                console.log(game);
-            }
-        }
+      
     </script>
 </body>
 </html>
