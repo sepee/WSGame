@@ -7,25 +7,38 @@
 </head>
 <body>
     
+    <div id="serverConnected">Server : </div>
     <div id="serverConnection">
-         <div>ws://wsgame-production.up.railway.app/:8080</div>
+        <div>ws://wsgame-production.up.railway.app/:8080</div>
         <label>socket server : </label>
-        <input type="text" id="inputServerAddress" value="ws://localhost:9090">
+        <input type="text" id="inputServerAddress" value="ws://localhost:8080">
         <button id="btnConnect">Connect</button>
         <br>
     </div>
 
     <h2>Game ID : <div id="txtGameId"> Not Joined </div></h2>
 
-    <div id="gamesList">
+    <h4>Games List:</h4>
+    <table id="gamesTable">
+        <thead>
+            <tr>
+                <th scope="col">Name</th>
+                <th scope="col">Players</th>
+                <th scope="col"></th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Example Game</td>
+                <td>5/8</td>
+                <td><button>JOIN</button></td> 
+            </tr>
+        </tbody>
+    </table>
 
-    </div>
-
+    <input type="text" id="inputGameId" value="untitled">
     <button id="btnCreate">New Game</button>
-    <button id="btnJoin">Join Game</button>
-    <input type="text" id="inputGameId">
-
-    <div id="txtPlayers"> no players yet </div>
+    <br>
 
     <canvas id="c" width="640" height="480" onmousedown="OnDragCanvas(event)"></canvas>
 
@@ -39,15 +52,27 @@
         const btnConnect = document.getElementById("btnConnect")
         const btnCreate = document.getElementById("btnCreate");
         const btnJoin = document.getElementById("btnJoin");
-        const inputGameId = document.getElementById("inputGameId");
-        const txtPlayers = document.getElementById("txtPlayers");
         const txtGameId = document.getElementById("txtGameId");
+        const inputGameName = document.getElementById("inputGameId");
         const inputServerAddress = document.getElementById("inputServerAddress");
 
+        JoinGame = function(g)
+        {
+            const payLoad = {
+                "method": "join",
+                "clientId": clientId,
+                "gameId": g
+            }
+
+            ws.send(JSON.stringify(payLoad));
+        }
+
         btnConnect.addEventListener("click", e=> {
-            ws = new WebSocket(inputServerAddress.value)
+            const serverAddress = inputServerAddress.value;
+            ws = new WebSocket(serverAddress);
 
             document.getElementById("serverConnection").remove();
+            document.getElementById("serverConnected").innerText += " " + serverAddress;
 
               // recieve packets
             ws.onmessage = message => {
@@ -69,6 +94,25 @@
                 if (response.method === "gamesList"){
                     games = response.games; 
                     console.log("Games list updated" + games);
+
+                    const gamesTable = document.getElementById("gamesTable");
+                    while(gamesTable.rows.length > 1) gamesTable.deleteRow(1);
+
+                    for(let gameId_list_element in games){
+                        var row = gamesTable.insertRow(-1);
+
+                        var cell1 = row.insertCell(0);
+                        var cell2 = row.insertCell(1);
+                        var cell3 = row.insertCell(2);
+                        
+                        var joinBtn = document.createElement("button");
+                        joinBtn.innerText = "JOIN";
+                        joinBtn.addEventListener("click", e => JoinGame(gameId_list_element))
+
+                        cell1.innerText = gameId_list_element;
+                        cell2.innerText = "   " + Object.keys(games[gameId_list_element].clients).length;
+                        cell3.appendChild(joinBtn);
+                    }
                 }
 
                 if (response.method === "join"){
@@ -91,20 +135,11 @@
         })
 
         //wiring events
-        btnJoin.addEventListener("click", e => {
-            const payLoad = {
-                "method": "join",
-                "clientId": clientId,
-                "gameId": inputGameId.value
-            }
-
-            ws.send(JSON.stringify(payLoad));
-        })
-
         btnCreate.addEventListener("click", e => {
             const payLoad = {
                 "method": "create",
-                "clientId": clientId
+                "clientId": clientId,
+                "gameId": inputGameId.value
             }
             ws.send(JSON.stringify(payLoad));
         })

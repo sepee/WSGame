@@ -39,7 +39,6 @@ const websocketServer = require("websocket").server
 const httpServer = http.createServer();
 httpServer.listen(WS_PORT, () => console.log("Listening on " + WS_PORT))
 
-
 const wsServer = new websocketServer({
     "httpServer": httpServer
 })
@@ -50,12 +49,11 @@ const games = {};
 
 SendClientGames = function(clientId)
 {
-const payLoad = {
-    "method": "gamesList",
-    "games" : games
-}
-
-clients[clientId].send(JSON.stringify(payLoad));
+    const payLoad = {
+        "method": "gamesList",
+        "games" : games
+    }
+    clients[clientId].connection.send(JSON.stringify(payLoad));
 }
 
 
@@ -72,7 +70,8 @@ wsServer.on("request", request => {
         // a user wants to create a new game
         if(result.method === "create"){
             const clientId = result.clientId;
-            const gameId = generateUUID();
+            const gameId = result.gameId;
+            
             games[gameId] = {
                 "id": gameId,
                 "clients": {}
