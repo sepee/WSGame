@@ -24,13 +24,19 @@ const websocketServer = require("websocket").server
 const httpServer = http.createServer();
 httpServer.listen(wsPort, () => console.log("Listening on " + wsPort))
 
+
+//const wsServer = new websocketServer({
+//    "httpServer": httpServer
+//})
+
+import { WebSocketServer } from "ws"
+const wsServer = new WebSocketServer({ port: Number(process.env.PORT) })
+
 //hashmap
 const clients = {};
 const games = {};
 
-const wsServer = new websocketServer({
-    "httpServer": httpServer
-})
+
 wsServer.on("request", request => {
     //connect
     const connection = request.accept(null, request.origin);
