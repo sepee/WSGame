@@ -56,12 +56,12 @@ var m4 = {
           ];
 	},
 
-	translation: function(tx, ty) {
+	translation: function(tx, ty, tz = 0) {
 	  return [
 		1, 0, 0, 0,
 		0, 1, 0, 0,
 		0, 0, 0, 1,
-		tx, ty, 0, 1
+		tx, ty, tz, 1
 	  ];
 	},
    
@@ -76,12 +76,13 @@ var m4 = {
 	  ];
 	},
    
-	scaling: function(sx, sy) {
+	scaling: function(sx, sy, sz = 1) {
 	  return [
 		sx, 0, 0, 0,
 		0, sy, 0, 0,
-		0, 0, 1, 0,
+		0, 0, sz, 0,
 		0, 0, 0, 1
 	  ];
 	},
   };
+

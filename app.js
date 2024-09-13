@@ -1,5 +1,10 @@
+//const { client } = require("websocket");
+
 const txtCursorPos = document.getElementById("txtCursorPos");
 canvas = document.getElementById("c")
+
+var xpos  = 0;
+var ypos = 0;
 
 const is_key_down = (() => {
     const state = {};
@@ -10,26 +15,15 @@ const is_key_down = (() => {
     return (key) => state.hasOwnProperty(key) && state[key] || false;
 })();
 
-
-var xpos  = 0;
-var ypos = 0;
-
-var xdelta = 0;
-var ydelta = 0;
-
 getMousePos = function(canvas, event)
 {
 	var rect = canvas.getBoundingClientRect(); // abs. size of element
 	scaleX = canvas.width / rect.width;    // relationship bitmap vs. element for x
 	scaleY = canvas.height / rect.height;  // relationship bitmap vs. element for y
 
-	var canvasX = (event.clientX - rect.left) * scaleX;   // scale mouse coordinates after they have
-	var	canvasY = (event.clientY - rect.top) * scaleY;     // been adjusted to be relative to element
+	xpos = (event.clientX - rect.left) * scaleX;   // scale mouse coordinates after they have
+	ypos = (event.clientY - rect.top) * scaleY;     // been adjusted to be relative to element
 
-	xdelta = canvasX - xpos;
-	ydelta = canvasY - ypos;
-	xpos = canvasX;
-	ypos = canvasY;
 	txtCursorPos.innerText = xpos + ", " + ypos
 
 	if(gameId){
@@ -65,88 +59,79 @@ function moveAt(event) {
 
 };
 
-var aspectRatio;
-
-function InitializeWebGLEnvironment(canvas)
-{
-	// Get A WebGL context
-	var gl = canvas.getContext("webgl");
-	
-	if (!gl) {
-	return;
+class vec3{
+	constructor(x,y,z){
+		this.x = x;
+		this.y = y;
+		this.z = z;
 	}
-	
-	aspectRatio = canvas.width / canvas.height;
-		
-	// Tell WebGL how to convert from clip space to pixels
-	gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
-
-	return gl;
 }
 
-function createShader(gl, type, source) {
-  var shader = gl.createShader(type);
-  gl.shaderSource(shader, source);
-  gl.compileShader(shader);
-  var success = gl.getShaderParameter(shader, gl.COMPILE_STATUS);
-  if (success) {
-    return shader;
-  }
-
-  console.log(gl.getShaderInfoLog(shader));
-  gl.deleteShader(shader);
-}
-
-var programFuncEval;
-var programDirect;
-
-function createShaderPrograms(gl)
+class Transform
 {
-	// Get the strings for our GLSL shaders
-	var directVertexShaderSource = document.querySelector("#direct-vertex-shader").text;
-	var fragmentShaderSource = document.querySelector("#fragment-shader").text;
-
-	// create GLSL shaders, upload the GLSL source, compile the shaders
-	var func_eval_vs = createShader(gl, gl.VERTEX_SHADER, directVertexShaderSource);
-	var direct_vs = createShader(gl, gl.VERTEX_SHADER, directVertexShaderSource);
-
-	var fs = createShader(gl, gl.FRAGMENT_SHADER, fragmentShaderSource);
-	
-	// Link the two shaders into a program
-	programFuncEval = createProgram(gl, func_eval_vs, fs);
-	programDirect = createProgram(gl , direct_vs, fs);
-	
-	return (programFuncEval != null);
+	constructor(pos, rot = vec3(0,0,0), scale = vec3(0,0,0)){
+		this.pos = pos;
+		this.rot = rot;
+		this.scale = scale;
+		this.CalculateMatrix();
+	}
+	CalculateMatrix(){
+		this.matrix = m4.multiply(m4.translation(this.pos.x, this.pos.y, this.pos.z),m4.multiply(m4.scaling(this.scale.x, this.scale.y, this.scale.z), m4.rotation(this.rot.x)));
+	}
 }
 
-function createProgram(gl, vertexShader, fragmentShader) {
-  var program = gl.createProgram();
-  gl.attachShader(program, vertexShader);
-  gl.attachShader(program, fragmentShader);
-  gl.linkProgram(program);
-  var success = gl.getProgramParameter(program, gl.LINK_STATUS);
-  if (success) {
-    return program;
-  }
+class Mesh{
+	constructor(vertices, indices, transform, shaderProgram, glPrimativeType = gl.LINES, glDrawMode = gl.DYNAMIC_DRAW)
+	{
+		this.vertices = vertices;
+		this.indices = indices;
+		this.transform = transform;
+		this.shaderProgram = shaderProgram;
+		this.glPrimativeType = glPrimativeType;
+		this.glDrawMode = glDrawMode;
 
-  console.log(gl.getProgramInfoLog(program));
-  gl.deleteProgram(program);
+		this.buildGPUBuffers();
+	}
+
+	buildGPUBuffers()
+	{
+		this.vertexBuffer = gl.createBuffer();	
+		gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuffer);	
+		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.vertices), this.glDrawMode);
+
+		this.indexBuffer = gl.createBuffer();
+		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
+		gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(this.indices), this.glDrawMode);
+	}
+
+	Render()
+	{
+		gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuffer);
+		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
+		
+		var positionAttributeLocation = gl.getAttribLocation(this.shaderProgram, "a_position");	// look up where the vertex data needs to go.
+		gl.enableVertexAttribArray(positionAttributeLocation);	// Turn on the attribute
+		gl.vertexAttribPointer(
+		  positionAttributeLocation, 2, gl.FLOAT, false, 0, 0);	// Tell the attribute how to get data out of positionBuffer (ARRAY_BUFFER)
+
+		gl.useProgram(this.shaderProgram);	// Tell it to use our program (pair of shaders)
+
+		var ModelMatrixLoc = gl.getUniformLocation(this.shaderProgram, "u_MMat");
+		gl.uniformMatrix4fv(ModelMatrixLoc, false, this.transform.matrix);
+		var ViewMatrixLoc = gl.getUniformLocation(this.shaderProgram, "u_VMat");
+		gl.uniformMatrix4fv(ViewMatrixLoc, false, VMat);
+
+		// draw
+		gl.drawElements(this.glPrimativeType, this.indices.length, gl.UNSIGNED_SHORT, 0);
+	}
 }
-
-var domainToScreenMatrix;
-var rangeToScreenMatrix
 
 var t = 0;
-
-var mainRunning = false;
-
+var gl;
+var VMat;
 
 function main() {
-	
-	mainRunning = true;
-	
-	var canvas = document.querySelector("#c");
-	var gl = InitializeWebGLEnvironment(canvas);
+	gl = InitializeWebGLEnvironment();
 		
 	// Set background colour
 	gl.clearColor(0.1, 0.1, 0.1, 1.0);
@@ -156,20 +141,10 @@ function main() {
 
 	var programs_compiled_success = createShaderPrograms(gl);
 	
+	squareMMat = m4.multiply(m4.translation(320, -240), m4.scaling(10, 10));
+	squareMesh = new Mesh(squareVertices, squareIndices, new Transform(new vec3(320, -240, 0), new vec3(0,0,0), new vec3(10,10,10)), programDirect);
 
-	var circleMesh = [0, 1, 0.71, 0.71,
-		0.71, 0.71, 1, 0,
-		1, 0, 0.71, -0.71,
-		0.71, -0.71, 0, -1,
-	   0, -1, -0.71, -0.71,
-	  -0.71, -0.71, -1, 0,
-	  -1, 0, -0.71, 0.71,
-	  -0.71, 0.71, 0, 1];
-	
-	var circlePositionBuffer = gl.createBuffer();	// Create a buffer and put three 2d clip space points in it
-	gl.bindBuffer(gl.ARRAY_BUFFER, circlePositionBuffer);	// Bind it to ARRAY_BUFFER (think of it as ARRAY_BUFFER = positionBuffer)
-	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(circleMesh), gl.DYNAMIC_DRAW);
-
+	VMat = m4.multiply(m4.translation(-1,1), m4.scaling(2/canvas.width, 2/canvas.height));
 
 	drawFrame();
 
@@ -177,47 +152,25 @@ function drawFrame()
 {
 	gl.clear(gl.COLOR_BUFFER_BIT);
 
-	t += 1;
-
-	function drawPositionsWithProgram(positionBuffer, bufferLength, program, branch = 0.0)
-	{		
-		// Bind the position buffer.
-		gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-		
-		var positionAttributeLocation = gl.getAttribLocation(program, "a_position");	// look up where the vertex data needs to go.
-		gl.enableVertexAttribArray(positionAttributeLocation);	// Turn on the attribute
-		gl.vertexAttribPointer(
-		  positionAttributeLocation, 2, gl.FLOAT, false, 0, 0);	// Tell the attribute how to get data out of positionBuffer (ARRAY_BUFFER)
-
-		gl.useProgram(program);	// Tell it to use our program (pair of shaders)
-
-		var MMatLoc = gl.getUniformLocation(program, "u_MMat");
-		gl.uniformMatrix4fv(MMatLoc, false, MMat);
-
-		// draw
-		gl.drawArrays(gl.LINES, 0, bufferLength/2);
-	}
-	
-	ScaleMat = m4.scaling(0.1, 0.1 * aspectRatio);
-	RotationMat = m4.rotation(t * 0.05);
+	squareMesh.Render();
 
 	if(gameId === null)
 	{
-		TranslationMat = m4.translation(xpos/320 - 1, 1-ypos/240);
-		MMat = m4.multiply(TranslationMat, m4.multiply(ScaleMat, RotationMat));
-
-		drawPositionsWithProgram(circlePositionBuffer, circleMesh.length, programDirect);
+		const circleTransform = new Transform(new vec3(xpos, -ypos, 0), new vec3(t*0.05,0,0), new vec3(25,25,25));
+		var circleMesh = new Mesh(circleVertices, circleIndices, circleTransform, programDirect);
+		circleMesh.Render();
 	}else{
 
 		for(let c in game.clients)
 		{
 			client = game.clients[c];
-			TranslationMat = m4.translation(client.x/320 - 1, 1-client.y/240);
-			MMat = m4.multiply(TranslationMat, m4.multiply(ScaleMat, RotationMat));
-
-			drawPositionsWithProgram(circlePositionBuffer, circleMesh.length, programDirect);
+			const circleTransform = new Transform(new vec3(client.x, -client.y, 0), new vec3(t*0.05,0,0), new vec3(25,25,25));
+			var circleMesh = new Mesh(circleVertices, circleIndices, circleTransform, programDirect);
+			circleMesh.Render();
 		}
 	}
+
+	t += 1;
 	
 	if(animate)
 	{
@@ -227,17 +180,8 @@ function drawFrame()
 		main();
 	}
 	}
-	
-	mainRunning = false;
 }
 
 var animate = true;
-
-function reloadFunction()
-{
-animate = false;
-if(!mainRunning)
-	main();
-}
 
 main();
