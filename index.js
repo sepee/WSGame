@@ -48,6 +48,16 @@ const wsServer = new websocketServer({
 const clients = {};
 const games = {};
 
+SendClientGames = function(clientId)
+{
+const payLoad = {
+    "method": "gamesList",
+    "games" : games
+}
+
+clients[clientId].send(JSON.stringify(payLoad));
+}
+
 
 wsServer.on("request", request => {
     //connect
@@ -75,6 +85,10 @@ wsServer.on("request", request => {
             const con = clients[clientId].connection;
             con.send(JSON.stringify(payLoad));
             console.log("Game Created : " + gameId);
+
+            for(let c in clients){
+                SendClientGames(c);
+            }
         }
 
         // a user wants to join a game
@@ -100,12 +114,8 @@ wsServer.on("request", request => {
                 "method": "join",
                 "game": game
             }
-            //loop through all clients and tell them that people have joined
-            //game.clients.forEach((v, k) => {
-            //    console.log(v);
-            //    clients[v.clientId].connection.send(JSON.stringify(payLoad));
-            //})
 
+            // loop through all players in game and notify them of a new player
             for(let c in game.clients){
                 clients[c].connection.send(JSON.stringify(payLoad));
             }
@@ -142,6 +152,7 @@ wsServer.on("request", request => {
 
     //send back the client connect
     connection.send(JSON.stringify(payLoad))
+    SendClientGames(clientId);
 })
 
 function generateUUID() { // Public Domain/MIT

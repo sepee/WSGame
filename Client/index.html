@@ -8,6 +8,7 @@
 <body>
     
     <div id="serverConnection">
+         <div>ws://wsgame-production.up.railway.app/:8080</div>
         <label>socket server : </label>
         <input type="text" id="inputServerAddress" value="ws://localhost:9090">
         <button id="btnConnect">Connect</button>
@@ -15,6 +16,10 @@
     </div>
 
     <h2>Game ID : <div id="txtGameId"> Not Joined </div></h2>
+
+    <div id="gamesList">
+
+    </div>
 
     <button id="btnCreate">New Game</button>
     <button id="btnJoin">Join Game</button>
@@ -24,7 +29,7 @@
 
     <canvas id="c" width="640" height="480" onmousedown="OnDragCanvas(event)"></canvas>
 
-    <div id="txtCursorPos">0, 0</div>
+    <div id="txtCursorPos">x, y</div>
 
     <script>
         let clientId = null
@@ -59,6 +64,11 @@
                     console.log(response);
                     txtGameId.innerText = gameId;
                     inputGameId.value = gameId;
+                }
+
+                if (response.method === "gamesList"){
+                    games = response.games; 
+                    console.log("Games list updated" + games);
                 }
 
                 if (response.method === "join"){
@@ -121,9 +131,9 @@
       color = vec4(1.0, 1.0, 1.0, 1.0);
     }
   
-  </script>
+</script>
   
-  <script  id="fragment-shader" type="notjs">
+<script  id="fragment-shader" type="notjs">
   
     // fragment shaders don't have a default precision so we need to pick one.
     precision lowp float;
@@ -134,11 +144,45 @@
 
       gl_FragColor = color; 
     }
-    </script>
+</script>
+
+<!-- Text Rendering Shaders -->
+
+<script  id="text-vertex-shader" type="notjs">
+
+    // an attribute will receive data from a buffer
+    attribute vec4 a_position;
+    attribute vec2 a_texCoord;
+  
+    varying vec2 v_texCoord;
+  
+    // all shaders have a main function
+    void main() 
+    {
+      gl_Position = a_position;
+      v_texCoord = a_texCoord;
+    }
+  
+</script>
+  
+<script  id="text-fragment-shader" type="notjs">
+    precision lowp float;
+  
+    varying vec2 v_texCoord;
+
+    uniform sampler2D u_font_bitmap;
+  
+    void main() 
+    {
+      //gl_FragColor = texture2D(u_font_bitmap, gl_FragCoord); 
+      gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
+    }
+</script>
   
 
 <!-- > RUN APP AFTER EVERYTHING ELSE IS LOADED <!-->
 <script src="linalg.js"></script>
 <script src="initializeGame.js"></script>
 <script src="meshdata.js"></script>
+<script src="engineClasses.js"></script>
 <script src="app.js"></script>
