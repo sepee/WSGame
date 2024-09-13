@@ -14,7 +14,7 @@ const http = require("http");
 const { client } = require("websocket");
 
 console.log("PORT : " + process.env.PORT);
-wsPort = process.env.PORT;
+wsPort =  Number(process.env.PORT);
 
 //const app = require("express")();
 //app.get("/", (req, res)=>res.sendFile(__dirname + "/index.html"))
