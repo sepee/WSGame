@@ -187,15 +187,18 @@
 
     // an attribute will receive data from a buffer
     attribute vec4 a_position;
-    attribute vec2 a_texCoord;
-  
+
+    uniform mat4 u_MMat;
+    uniform mat4 u_VMat;
+
     varying vec2 v_texCoord;
   
     // all shaders have a main function
     void main() 
     {
-      gl_Position = a_position;
-      v_texCoord = a_texCoord;
+      vec4 screenPos = u_VMat * (u_MMat * a_position);
+      gl_Position = screenPos;
+      v_texCoord = screenPos.xy;
     }
   
 </script>
@@ -205,12 +208,12 @@
   
     varying vec2 v_texCoord;
 
-    uniform sampler2D u_font_bitmap;
+    uniform sampler2D u_texture;
   
     void main() 
     {
-      //gl_FragColor = texture2D(u_font_bitmap, gl_FragCoord); 
-      gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
+      gl_FragColor = texture2D(u_texture, v_texCoord); 
+      //gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
     }
 </script>
   

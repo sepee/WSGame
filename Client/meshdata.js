@@ -7,3 +7,6 @@ const squareIndices = [0,1,1,2,2,3,3,0];
 // vertices of quad to be drawn using gl.TRIANGLE_STRIP
 const quadVerticesTS = [0,0,0,1,1,0,1,1];
 const quadIndicesTS = [0,1,2,3];
+
+const quadVerticesT = [0,0, 0,1, 1,0, 1,1];
+const quadIndicesT = [0,1,3,0,3,2];

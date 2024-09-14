@@ -74,7 +74,7 @@ class TextMesh{
         this.content = content;
 
 		this.vertices = quadVerticesTS;
-		this.indices = quadVerticesTS;  
+		this.indices = quadIndicesTS;  
 		this.shaderProgram = programText;
 		this.glPrimativeType = gl.TRIANGLE_STRIP;
 		this.glDrawMode = gl.DYNAMIC_DRAW;
