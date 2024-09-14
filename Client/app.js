@@ -98,7 +98,6 @@ function main() {
 
 	// Asynchronously load an image
 	var image = new Image();
-	image.src = "/img/font8x12.png";
 	image.addEventListener('load', function() {
 		// Now that the image has loaded make copy it to the texture.
 		gl.bindTexture(gl.TEXTURE_2D, texture);
@@ -106,7 +105,8 @@ function main() {
 		gl.generateMipmap(gl.TEXTURE_2D);
 		console.log("texture loaded" + image);
 	});
-	
+	image.src = "img/font8x12.png";
+
 
 	drawFrame();
 
