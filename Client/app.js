@@ -93,20 +93,18 @@ function main() {
 	gl.bindTexture(gl.TEXTURE_2D, texture);
 
 	// Fill the texture with a 1x1 blue pixel.
-	gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE,
+	gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, 1, 1, 0, gl.RGB, gl.UNSIGNED_BYTE,
 					new Uint8Array([255, 0, 255, 255]));
 
 	// Asynchronously load an image
-	var image = new Image();
-	image.addEventListener('load', function() {
+	var textImage = new Image();
+	textImage.addEventListener('load', function() {
 		// Now that the image has loaded make copy it to the texture.
 		gl.bindTexture(gl.TEXTURE_2D, texture);
-		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
-		gl.generateMipmap(gl.TEXTURE_2D);
-		console.log("texture loaded" + image);
+		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, textImage);
+		console.log("texture loaded");
 	});
-	image.src = "img/font8x12.png";
-
+	textImage.src = "/img/test.png";
 
 	drawFrame();
 
@@ -117,7 +115,6 @@ function drawFrame()
 
 	// experimenting with text rendering
 	
-
 	textMesh.Render();
 	////////////////////////
 
