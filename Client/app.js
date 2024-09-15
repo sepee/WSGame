@@ -82,7 +82,6 @@ function main() {
 
 	textMesh = new TextMesh(new Transform(new vec3(20,20,0), new vec3(0,0,0), new vec3(100,50,1)), "Hello World!");
 
-
 	// Create a texture.
 	var texture = gl.createTexture();
 
@@ -93,18 +92,18 @@ function main() {
 	gl.bindTexture(gl.TEXTURE_2D, texture);
 
 	// Fill the texture with a 1x1 blue pixel.
-	gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, 1, 1, 0, gl.RGB, gl.UNSIGNED_BYTE,
-					new Uint8Array([255, 0, 255, 255]));
+	gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE,
+					new Uint8Array([0, 0, 255, 255]));
 
 	// Asynchronously load an image
-	var textImage = new Image();
-	textImage.addEventListener('load', function() {
+	var image = new Image();
+	image.src = "/img/banner-small.jpg";
+	image.addEventListener('load', function() {
 		// Now that the image has loaded make copy it to the texture.
 		gl.bindTexture(gl.TEXTURE_2D, texture);
-		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, textImage);
-		console.log("texture loaded");
+		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+		gl.generateMipmap(gl.TEXTURE_2D);
 	});
-	textImage.src = "/img/test.png";
 
 	drawFrame();
 

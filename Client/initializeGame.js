@@ -5,7 +5,7 @@ var aspectRatio;
 function InitializeWebGLEnvironment()
 {
 	// Get A WebGL context
-	var gl = canvas.getContext("webgl");
+	var gl = canvas.getContext("webgl2");
 	
 	if (!gl) {
 		return;
