@@ -183,18 +183,21 @@
 
     // an attribute will receive data from a buffer
     in vec4 a_position;
+    in float a_char_offset;
+    in vec2 a_uv_offset;
 
     uniform mat4 u_MMat;
     uniform mat4 u_VMat;
+    uniform float u_font_size;
 
     out vec2 v_texCoord;
   
     // all shaders have a main function
     void main() 
     {
-      vec4 screenPos = u_VMat * (u_MMat * a_position);
+      vec4 screenPos = u_VMat * (u_MMat * a_position + vec4(a_char_offset * u_font_size, 0.0, 0.0, 0.0));
       gl_Position = screenPos;
-      v_texCoord = a_position.xy;
+      v_texCoord = vec2((a_position.x + a_uv_offset.x) / 16.0, (a_position.y + a_uv_offset.y) / 6.0);
     }
   
 </script>
@@ -204,7 +207,7 @@
     precision lowp float;
     
     in vec2 v_texCoord;
-    
+
     uniform sampler2D u_texture;
     
     out vec4 fragColor;

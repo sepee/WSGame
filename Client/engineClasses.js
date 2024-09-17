@@ -49,6 +49,7 @@ class Mesh{
 		gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuffer);
 		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
 		
+		// set attribute for vertex position
 		var positionAttributeLocation = gl.getAttribLocation(this.shaderProgram, "a_position");	// look up where the vertex data needs to go.
 		gl.enableVertexAttribArray(positionAttributeLocation);	// Turn on the attribute
 		gl.vertexAttribPointer(
@@ -68,10 +69,11 @@ class Mesh{
 
 
 class TextMesh{
-	constructor(transform, content)
+	constructor(transform, content, fontWidth = 16)
 	{
         this.transform = transform;
         this.content = content;
+		this.fontWidth = fontWidth;
 
 		this.vertices = quadVerticesTS;
 		this.indices = quadIndicesTS;  
@@ -91,6 +93,34 @@ class TextMesh{
 		this.indexBuffer = gl.createBuffer();
 		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
 		gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(this.indices), this.glDrawMode);
+
+		const charOffsetBuffer = gl.createBuffer();
+		this.charOffsetBuffer = charOffsetBuffer;
+		gl.bindBuffer(gl.ARRAY_BUFFER, charOffsetBuffer);
+		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0,1,2,3,4,5,6,7,8,9,10,11]), this.glDrawMode);
+
+		const uv_offsets = this.GenerateUVOffsets();
+		const uvOffsetsBuffer = gl.createBuffer();
+		this.uvOffsetsBuffer = uvOffsetsBuffer;
+		gl.bindBuffer(gl.ARRAY_BUFFER, uvOffsetsBuffer);
+		gl.bufferData(gl.ARRAY_BUFFER, uv_offsets, this.glDrawMode);
+	}
+
+	GenerateUVOffsets = function()
+	{
+		var uv_offsets = [];
+
+		const encoder = new TextEncoder();
+		const encodedContent = encoder.encode(this.content);
+
+		// TODO: Calculate UV Offsets from this.content
+		for (let i = 0; i < this.content.length; i++) {
+			const char = encodedContent[i];
+			uv_offsets[i * 2    ] = char%16;
+			uv_offsets[i * 2 + 1] = Math.floor(char/16) - 2;
+		  } 
+
+		return new Float32Array(uv_offsets);
 	}
 
 	Render()
@@ -98,11 +128,29 @@ class TextMesh{
 		gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuffer);
 		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
 		gl.bindTexture(gl.TEXTURE_2D, fontTexture);
-		
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+
+		// set attribute for vertex position
 		var positionAttributeLocation = gl.getAttribLocation(this.shaderProgram, "a_position");	// look up where the vertex data needs to go.
 		gl.enableVertexAttribArray(positionAttributeLocation);	// Turn on the attribute
-		gl.vertexAttribPointer(
-		  positionAttributeLocation, 2, gl.FLOAT, false, 0, 0);	// Tell the attribute how to get data out of positionBuffer (ARRAY_BUFFER)
+		gl.vertexAttribPointer(positionAttributeLocation, 2, gl.FLOAT, false, 0, 0);	// Tell the attribute how to get data out of positionBuffer (ARRAY_BUFFER)
+
+		// set attributes for char offset and content buffers, to be used in instanced character drawing
+
+		// set attribute for char offset
+		gl.bindBuffer(gl.ARRAY_BUFFER, this.charOffsetBuffer);
+		var charOffsetLoc = gl.getAttribLocation(this.shaderProgram, "a_char_offset");	// look up where the vertex data needs to go.
+		gl.enableVertexAttribArray(charOffsetLoc);
+		gl.vertexAttribPointer(charOffsetLoc, 1, gl.FLOAT, false, 0, 0);
+		// this line says this attribute only changes for each 1 instance
+		gl.vertexAttribDivisor(charOffsetLoc, 1);
+
+		// set attribute for char offset
+		gl.bindBuffer(gl.ARRAY_BUFFER, this.uvOffsetsBuffer);
+		var uvOffsetsLoc = gl.getAttribLocation(this.shaderProgram, "a_uv_offset");	// look up where the vertex data needs to go.
+		gl.enableVertexAttribArray(uvOffsetsLoc);
+		gl.vertexAttribPointer(uvOffsetsLoc, 2, gl.FLOAT, false, 0, 0);
+		gl.vertexAttribDivisor(uvOffsetsLoc, 1);
 
 		gl.useProgram(this.shaderProgram);	// Tell it to use our program (pair of shaders)
 
@@ -110,8 +158,10 @@ class TextMesh{
 		gl.uniformMatrix4fv(ModelMatrixLoc, false, this.transform.matrix);
 		var ViewMatrixLoc = gl.getUniformLocation(this.shaderProgram, "u_VMat");
 		gl.uniformMatrix4fv(ViewMatrixLoc, false, VMat);
+		var fontSizeLoc = gl.getUniformLocation(this.shaderProgram, "u_font_size");
+		gl.uniform1f(fontSizeLoc, this.fontWidth);
 
 		// draw
-		gl.drawElements(this.glPrimativeType, this.indices.length, gl.UNSIGNED_SHORT, 0);
+		gl.drawElementsInstanced(this.glPrimativeType, this.indices.length, gl.UNSIGNED_SHORT, 0, this.content.length);
 	}
 }

@@ -58,7 +58,7 @@ function main() {
 
 	VMat = m4.multiply(m4.translation(-1,1), m4.scaling(2/canvas.width, -2/canvas.height));
 
-	textMesh = new TextMesh(new Transform(new vec3(20,20,0), new vec3(0,0,0), new vec3(100,50,1)), "Hello World!");
+	textMesh = new TextMesh(new Transform(new vec3(20,20,0), new vec3(0,0,0), new vec3(32,48,1)), "Hello World!", 32);
 
 	fontTexture = LoadTexture("/img/font8x12.png");
 
