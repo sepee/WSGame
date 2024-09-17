@@ -18,23 +18,6 @@ PORT =  Number(process.env.PORT);
 PORT = 8080;
 WS_PORT = 8080
 
-/// express hosting
-
-//const express = require('express')
-//const webserver = express()
-//
-//webserver.listen(PORT, () => {
-//    console.log(`Server is running on port ${PORT}`);
-//});
-//
-//webserver.get("/", (req, res) => {
-//    res.sendFile('/Client/index.html', { root: __dirname });
-//});
-//
-//webserver.use(express.static(__dirname + "/Client/"));
-
-/// end express hosting
-
 const websocketServer = require("websocket").server
 const httpServer = http.createServer();
 httpServer.listen(WS_PORT, () => console.log("Listening on " + WS_PORT))

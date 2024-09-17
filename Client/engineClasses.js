@@ -97,6 +97,7 @@ class TextMesh{
 	{
 		gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuffer);
 		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
+		gl.bindTexture(gl.TEXTURE_2D, fontTexture);
 		
 		var positionAttributeLocation = gl.getAttribLocation(this.shaderProgram, "a_position");	// look up where the vertex data needs to go.
 		gl.enableVertexAttribArray(positionAttributeLocation);	// Turn on the attribute

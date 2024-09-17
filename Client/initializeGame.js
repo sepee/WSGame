@@ -74,3 +74,14 @@ function createShaderPrograms(gl)
 	
 	return (programDirect != null);
 }
+
+// setup mouse movement callback
+OnDragCanvas = function(event) {
+	document.addEventListener('mousemove', onMouseMove);
+  
+	document.onmouseup = function() {
+	  document.removeEventListener('mousemove', onMouseMove);
+	  document.onmouseup = null;
+	};
+  };
+  
