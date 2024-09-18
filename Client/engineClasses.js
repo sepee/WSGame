@@ -69,7 +69,7 @@ class Mesh{
 
 
 class TextMesh{
-	constructor(transform, content, fontWidth = 16)
+	constructor(transform, content, fontWidth = 16, color = new vec3(1,1,1), centered = false)
 	{
         this.transform = transform;
         this.content = content;
@@ -80,6 +80,7 @@ class TextMesh{
 		this.shaderProgram = programText;
 		this.glPrimativeType = gl.TRIANGLE_STRIP;
 		this.glDrawMode = gl.DYNAMIC_DRAW;
+		this.centered = centered;
 
 		this.buildGPUBuffers();
 	}
@@ -94,16 +95,30 @@ class TextMesh{
 		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
 		gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(this.indices), this.glDrawMode);
 
+		const charOffsets = this.GenerateCharOffsets();
 		const charOffsetBuffer = gl.createBuffer();
 		this.charOffsetBuffer = charOffsetBuffer;
 		gl.bindBuffer(gl.ARRAY_BUFFER, charOffsetBuffer);
-		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0,1,2,3,4,5,6,7,8,9,10,11]), this.glDrawMode);
+		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(charOffsets), this.glDrawMode);
 
 		const uv_offsets = this.GenerateUVOffsets();
 		const uvOffsetsBuffer = gl.createBuffer();
 		this.uvOffsetsBuffer = uvOffsetsBuffer;
 		gl.bindBuffer(gl.ARRAY_BUFFER, uvOffsetsBuffer);
 		gl.bufferData(gl.ARRAY_BUFFER, uv_offsets, this.glDrawMode);
+	}
+
+	GenerateCharOffsets = function()
+	{
+		var char_offsets = [];
+		var centeringOffset = this.centered ? this.content.length / -2 : 0;
+
+		for (let i = 0; i < this.content.length; i++) 
+		{
+			char_offsets[i] = i + centeringOffset;
+		}
+
+		return char_offsets;
 	}
 
 	GenerateUVOffsets = function()
@@ -129,6 +144,7 @@ class TextMesh{
 		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
 		gl.bindTexture(gl.TEXTURE_2D, fontTexture);
 		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
 
 		// set attribute for vertex position
 		var positionAttributeLocation = gl.getAttribLocation(this.shaderProgram, "a_position");	// look up where the vertex data needs to go.

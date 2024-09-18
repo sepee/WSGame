@@ -58,7 +58,10 @@ function main() {
 
 	VMat = m4.multiply(m4.translation(-1,1), m4.scaling(2/canvas.width, -2/canvas.height));
 
-	textMesh = new TextMesh(new Transform(new vec3(20,20,0), new vec3(0,0,0), new vec3(32,48,1)), "Hello World!", 32);
+	tmTitle = new TextMesh(new Transform(new vec3(320,0,0), new vec3(0,0,0), new vec3(32,48,1)), "Centered TITLE!", 32, new vec3(1, 0.5, 0), true);
+	tmSubtitle = new TextMesh(new Transform(new vec3(0,64,0), new vec3(0,0,0), new vec3(16,24,1)), "Hello World!", 16);
+	tmInfo = new TextMesh(new Transform(new vec3(0,88,0), new vec3(0,0,0), new vec3(8,12,1)), "This text is 8x12 pixels... meaning any smaller text may lose ledgibility.", 8);
+
 
 	fontTexture = LoadTexture("/img/font8x12.png");
 
@@ -68,7 +71,9 @@ function drawFrame()
 {
 	gl.clear(gl.COLOR_BUFFER_BIT);
 	
-	textMesh.Render();
+	tmTitle.Render();
+	tmSubtitle.Render();
+	tmInfo.Render();
 
 	squareMesh.Render();
 
