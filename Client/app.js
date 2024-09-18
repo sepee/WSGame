@@ -51,12 +51,14 @@ function main() {
 	gl.enable(gl.BLEND);
 	gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
+	gl.enable(gl.DEPTH_TEST);
+
 	var programs_compiled_success = createShaderPrograms(gl);
 	
-	squareMMat = m4.multiply(m4.translation(320, 240), m4.scaling(10, 10));
 	squareMesh = new Mesh(squareVertices, squareIndices, new Transform(new vec3(320, 240, 0), new vec3(0,0,0), new vec3(10,10,10)), programDirect);
 
 	VMat = m4.multiply(m4.translation(-1,1), m4.scaling(2/canvas.width, -2/canvas.height));
+	PMat = m4.perspective(degToRad(90), 3/2, 0.1, 100);
 
 	tmTitle = new TextMesh(new Transform(new vec3(320,0,0), new vec3(0,0,0), new vec3(32,48,1)), "Centered TITLE!", 32, new vec3(1, 0.5, 0), true);
 	tmSubtitle = new TextMesh(new Transform(new vec3(0,64,0), new vec3(0,0,0), new vec3(16,24,1)), "Hello World!", 16);
@@ -64,6 +66,7 @@ function main() {
 	tmCounter = new TextMesh(new Transform(new vec3(4,120,0), new vec3(0,0,0), new vec3(8,12,1)), "000", 8);
 
 	fontTexture = LoadTexture("/img/font8x12.png");
+
 
 	drawFrame();
 
@@ -74,11 +77,13 @@ function drawFrame()
 	tmTitle.Render();
 	tmSubtitle.Render();
 	tmInfo.Render();
-
 	tmCounter.SetContent("t : " + t);
 	tmCounter.Render();
 
 	squareMesh.Render();
+
+	cubeMesh = new Mesh(cubeVertices, cubeIndices, new Transform(new vec3(0,0,-3), new vec3(0,t*0.01,0), new vec3(1,1,1)), programLit, ["a_position3", "a_normal"], 24, gl.TRIANGLES);
+	cubeMesh.Render();
 
 	if(gameId === null)
 	{

@@ -46,31 +46,28 @@ function createProgram(gl, vertexShader, fragmentShader) {
 	gl.deleteProgram(program);
   }
 
+function CreateShaderProgramFromQS(vsqs, fsqs)
+{
+	// Get the strings for our GLSL shaders
+	var vs_source = document.querySelector(vsqs).text;
+	var fs_source = document.querySelector(fsqs).text;
+	// create GLSL shaders, upload the GLSL source, compile the shaders
+	var vs = createShader(gl, gl.VERTEX_SHADER, vs_source);
+	var fs = createShader(gl, gl.FRAGMENT_SHADER, fs_source);
+	
+	// Link the two shaders into a program
+	return createProgram(gl, vs, fs);
+}
+
 var programDirect;
 var programText;
+var programLit;
 
 function createShaderPrograms(gl)
 {
-	// Get the strings for our GLSL shaders
-	var directVertexShaderSource = document.querySelector("#direct-vertex-shader").text;
-	var directFragmentShaderSource = document.querySelector("#fragment-shader").text;
-	// create GLSL shaders, upload the GLSL source, compile the shaders
-	var direct_vs = createShader(gl, gl.VERTEX_SHADER, directVertexShaderSource);
-	var direct_fs = createShader(gl, gl.FRAGMENT_SHADER, directFragmentShaderSource);
-	
-	// Link the two shaders into a program
-	programDirect = createProgram(gl , direct_vs, direct_fs);
-
-
-	// Get the strings for our GLSL shaders
-	var textVSSource = document.querySelector("#text-vertex-shader").text;
-	var textFSSource = document.querySelector("#text-fragment-shader").text;
-	// create GLSL shaders, upload the GLSL source, compile the shaders
-	var text_vs = createShader(gl, gl.VERTEX_SHADER, textVSSource);
-	var text_fs = createShader(gl, gl.FRAGMENT_SHADER, textFSSource);
-	
-	// Link the two shaders into a program
-	programText = createProgram(gl , text_vs, text_fs);
+	programDirect = CreateShaderProgramFromQS("#direct-vertex-shader", "#fragment-shader")
+	programText = CreateShaderProgramFromQS("#text-vertex-shader", "#text-fragment-shader")
+	programLit = CreateShaderProgramFromQS("#mvp-vertex-shader", "#lit-fragment-shader")
 	
 	return (programDirect != null);
 }

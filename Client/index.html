@@ -176,7 +176,6 @@
     varying vec4 color;
   
     void main() {
-
       gl_FragColor = color; 
     }
 </script>
@@ -227,24 +226,25 @@
 
 
 <script  id="mvp-vertex-shader" type="notjs">#version 300 es
-
     in vec4 a_position;
-    in vec3 normal;
-    
+    in vec3 a_normal;
+
     uniform mat4 u_MMat;
     uniform mat4 u_VMat;
     uniform mat4 u_PMat;
   
     out vec4 v_color;
     out vec4 v_worldPos;
+    out vec3 v_normal;
     out vec4 v_fragPos;
   
     // all shaders have a main function
     void main() 
     {
-        v_worldPos = u_VMat * (u_MMat * a_position);
-        v_fragPos = u_PMat * v_worldPos;
-        color = vec4(1.0, 1.0, 1.0, 1.0);
+        v_worldPos = (u_MMat * a_position);
+        gl_Position = u_PMat * u_MMat * a_position;
+        v_color = vec4(a_position.xyz * 0.8 + 0.2, 1.0);
+        v_normal = a_normal;
     }
   
 </script>
@@ -256,11 +256,14 @@
   
     in vec4 v_color;
     in vec4 v_worldPos;
+    in vec3 v_normal;
     in vec4 v_fragPos;
+
+    out vec4 fragColor;
   
     void main() 
     {
-      gl_FragColor = v_color; 
+        fragColor = v_color; 
     }
 </script>
 

@@ -22,16 +22,65 @@ class Transform
 }
 
 class Mesh{
-	constructor(vertices, indices, transform, shaderProgram, glPrimativeType = gl.LINES, glDrawMode = gl.DYNAMIC_DRAW)
+	constructor(vertices, indices, transform, shaderProgram, attributes = ["a_position"], vertexStride, glPrimativeType = gl.LINES, glDrawMode = gl.DYNAMIC_DRAW)
 	{
+		this.vertexAttributes = {};
+		this.SetStandardAttributes(attributes);
+
 		this.vertices = vertices;
 		this.indices = indices;
 		this.transform = transform;
 		this.shaderProgram = shaderProgram;
+		this.vertexStride = vertexStride;
 		this.glPrimativeType = glPrimativeType;
 		this.glDrawMode = glDrawMode;
 
 		this.buildGPUBuffers();
+	}
+
+	SetStandardAttributes(attributes)
+	{
+		for(let i = 0; i < attributes.length; i++)
+			this.SetStandardAttribute(attributes[i]);
+	}
+
+	SetStandardAttribute(name)
+	{
+		switch(name)
+		{
+			case "a_position":
+				this.SetAttributeData("a_position", 2, gl.FLOAT, false);
+				break;
+			case "a_position3":
+				this.SetAttributeData("a_position", 3, gl.FLOAT, false);
+				break;
+			case "a_uv":
+				this.SetAttributeData("a_uv", 2, gl.FLOAT, false);
+				break;
+			case "a_normal":
+				this.SetAttributeData("a_normal", 3, gl.FLOAT, true);
+				break;
+			case "a_color":
+				this.SetAttributeData("a_color", 4, gl.FLOAT, false);
+				break;
+
+		}
+	}
+
+	SetAttributeData(name, size, type = gl.FLOAT, normalized = false)
+	{
+		/*
+		name : string, should match the attribute name used in the shader program.
+		data : array of data.
+		size : GLint, specifying size of attribute, must be \in {1,2,3,4}.
+		type : GLenum, specifying type of data.
+		normalized : GLboolean, true if attribute should be normalized.
+		*/
+		this.vertexAttributes[name] = {
+			"size" : size,
+			"type" : type,
+			"normalized" : normalized
+		};
 	}
 
 	buildGPUBuffers()
@@ -51,6 +100,8 @@ class Mesh{
 		gl.uniformMatrix4fv(ModelMatrixLoc, false, this.transform.matrix);
 		var ViewMatrixLoc = gl.getUniformLocation(this.shaderProgram, "u_VMat");
 		gl.uniformMatrix4fv(ViewMatrixLoc, false, VMat);
+		var ProjMatrixLoc = gl.getUniformLocation(this.shaderProgram, "u_PMat");
+		gl.uniformMatrix4fv(ProjMatrixLoc, false, PMat);
 	}
 
 	BindBuffers()
@@ -59,13 +110,15 @@ class Mesh{
 		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
 	}
 
-	SetAttributes()
-	{
-		// set attribute for vertex position
-		var positionAttributeLocation = gl.getAttribLocation(this.shaderProgram, "a_position");	// look up where the vertex data needs to go.
-		gl.enableVertexAttribArray(positionAttributeLocation);	// Turn on the attribute
-		gl.vertexAttribPointer(
-		positionAttributeLocation, 2, gl.FLOAT, false, 0, 0);	// Tell the attribute how to get data out of positionBuffer (ARRAY_BUFFER)
+	SetVertexAttributes()
+	{		
+		//console.log("setting attributes");
+		for (const [key, value] of Object.entries(this.vertexAttributes)) {
+			var attribLoc = gl.getAttribLocation(this.shaderProgram, key);	// look up where the vertex data needs to go.
+			//console.log(key, attribLoc);
+			gl.enableVertexAttribArray(attribLoc);	// Turn on the attribute
+			gl.vertexAttribPointer(attribLoc, value.size, value.type, value.normalized, this.vertexStride, 0);	// Tell the attribute how to get data out of positionBuffer (ARRAY_BUFFER)
+		  }
 	}
 
 	Render()
@@ -73,7 +126,7 @@ class Mesh{
 		gl.useProgram(this.shaderProgram);	// Tell it to use our program (pair of shaders)
 		this.SetUniforms();
 		this.BindBuffers();
-		this.SetAttributes();
+		this.SetVertexAttributes();
 		
 		// draw
 		gl.drawElements(this.glPrimativeType, this.indices.length, gl.UNSIGNED_SHORT, 0);
@@ -83,7 +136,7 @@ class Mesh{
 class TextMesh{
 	constructor(transform, content, fontWidth = 16, color = new vec3(1,1,1), centered = false)
 	{		
-		var mesh = new Mesh(quadVerticesTS, quadIndicesTS, transform, programText, gl.TRIANGLE_STRIP, gl.STATIC_DRAW);
+		var mesh = new Mesh(quadVerticesTS, quadIndicesTS, transform, programText, ["a_position"], 8, gl.TRIANGLE_STRIP, gl.STATIC_DRAW);
 		this.mesh = mesh;
 
         this.content = content;
@@ -163,7 +216,8 @@ class TextMesh{
 	}
 
 	SetAttributes = function(){
-		this.mesh.SetAttributes();
+		this.mesh.SetVertexAttributes();
+
 		// set attribute for char offset
 		gl.bindBuffer(gl.ARRAY_BUFFER, this.charOffsetBuffer);
 		var charOffsetLoc = gl.getAttribLocation(this.mesh.shaderProgram, "a_char_offset");	// look up where the vertex data needs to go.
