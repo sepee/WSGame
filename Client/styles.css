@@ -1,0 +1,19 @@
+.canvas-container{
+    background-color: green;
+    position: relative;
+   width: 640px;
+   height: 480px;
+}
+
+.canvas{
+    position: absolute;
+    left: 0px;
+    right: 0px;
+}
+
+.over-canvas{
+    background-color: red;
+    position: relative;
+    left: 10px;
+    top: 10px;
+}

@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css">
     <title>Document</title>
 </head>
 <body>
@@ -36,7 +37,10 @@
     <button id="btnCreate">New Game</button>
     <br>
 
-    <canvas id="c" width="640" height="480" onmousedown="OnDragCanvas(event)"></canvas>
+    <div class="canvas-container">
+    <canvas id="c" width="640" height="480" onmousedown="OnDragCanvas(event)"> 
+    </canvas>
+    </div>
 
     <div id="txtCursorPos">x, y</div>
 
@@ -216,6 +220,47 @@
     {
         vec4 texColor = texture(u_texture, v_texCoord); 
         fragColor = texColor;
+    }
+</script>
+
+<!-- ------------------------- Lit Shaders ------------------------- -->
+
+
+<script  id="mvp-vertex-shader" type="notjs">#version 300 es
+
+    in vec4 a_position;
+    in vec3 normal;
+    
+    uniform mat4 u_MMat;
+    uniform mat4 u_VMat;
+    uniform mat4 u_PMat;
+  
+    out vec4 v_color;
+    out vec4 v_worldPos;
+    out vec4 v_fragPos;
+  
+    // all shaders have a main function
+    void main() 
+    {
+        v_worldPos = u_VMat * (u_MMat * a_position);
+        v_fragPos = u_PMat * v_worldPos;
+        color = vec4(1.0, 1.0, 1.0, 1.0);
+    }
+  
+</script>
+  
+<script  id="lit-fragment-shader" type="notjs">#version 300 es
+  
+    // fragment shaders don't have a default precision so we need to pick one.
+    precision lowp float;
+  
+    in vec4 v_color;
+    in vec4 v_worldPos;
+    in vec4 v_fragPos;
+  
+    void main() 
+    {
+      gl_FragColor = v_color; 
     }
 </script>
 

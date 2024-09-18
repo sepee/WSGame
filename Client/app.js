@@ -61,7 +61,7 @@ function main() {
 	tmTitle = new TextMesh(new Transform(new vec3(320,0,0), new vec3(0,0,0), new vec3(32,48,1)), "Centered TITLE!", 32, new vec3(1, 0.5, 0), true);
 	tmSubtitle = new TextMesh(new Transform(new vec3(0,64,0), new vec3(0,0,0), new vec3(16,24,1)), "Hello World!", 16);
 	tmInfo = new TextMesh(new Transform(new vec3(0,88,0), new vec3(0,0,0), new vec3(8,12,1)), "This text is 8x12 pixels... meaning any smaller text may lose ledgibility.", 8);
-
+	tmCounter = new TextMesh(new Transform(new vec3(4,120,0), new vec3(0,0,0), new vec3(8,12,1)), "000", 8);
 
 	fontTexture = LoadTexture("/img/font8x12.png");
 
@@ -75,11 +75,14 @@ function drawFrame()
 	tmSubtitle.Render();
 	tmInfo.Render();
 
+	tmCounter.SetContent("t : " + t);
+	tmCounter.Render();
+
 	squareMesh.Render();
 
 	if(gameId === null)
 	{
-		const circleTransform = new Transform(new vec3(xpos, ypos, 0), new vec3(t*0.05,0,0), new vec3(25,25,25));
+		const circleTransform = new Transform(new vec3(xpos, ypos, 0), new vec3(0,0,t*0.05), new vec3(25,25,25));
 		var circleMesh = new Mesh(circleVertices, circleIndices, circleTransform, programDirect);
 		circleMesh.Render();
 	}else{
@@ -87,7 +90,7 @@ function drawFrame()
 		for(let c in game.clients)
 		{
 			client = game.clients[c];
-			const circleTransform = new Transform(new vec3(client.x, client.y, 0), new vec3(t*0.05,0,0), new vec3(25,25,25));
+			const circleTransform = new Transform(new vec3(client.x, client.y, 0), new vec3(0,0,t*0.05), new vec3(25,25,25));
 			var circleMesh = new Mesh(circleVertices, circleIndices, circleTransform, programDirect);
 			circleMesh.Render();
 		}
