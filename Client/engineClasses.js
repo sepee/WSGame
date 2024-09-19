@@ -24,9 +24,6 @@ class Transform
 class Mesh{
 	constructor(vertices, indices, transform, shaderProgram, attributes = ["a_position"], vertexStride, glPrimativeType = gl.LINES, glDrawMode = gl.DYNAMIC_DRAW)
 	{
-		this.vertexAttributes = {};
-		this.SetStandardAttributes(attributes);
-
 		this.vertices = vertices;
 		this.indices = indices;
 		this.transform = transform;
@@ -36,51 +33,7 @@ class Mesh{
 		this.glDrawMode = glDrawMode;
 
 		this.buildGPUBuffers();
-	}
-
-	SetStandardAttributes(attributes)
-	{
-		for(let i = 0; i < attributes.length; i++)
-			this.SetStandardAttribute(attributes[i]);
-	}
-
-	SetStandardAttribute(name)
-	{
-		switch(name)
-		{
-			case "a_position":
-				this.SetAttributeData("a_position", 2, gl.FLOAT, false);
-				break;
-			case "a_position3":
-				this.SetAttributeData("a_position", 3, gl.FLOAT, false);
-				break;
-			case "a_uv":
-				this.SetAttributeData("a_uv", 2, gl.FLOAT, false);
-				break;
-			case "a_normal":
-				this.SetAttributeData("a_normal", 3, gl.FLOAT, true);
-				break;
-			case "a_color":
-				this.SetAttributeData("a_color", 4, gl.FLOAT, false);
-				break;
-
-		}
-	}
-
-	SetAttributeData(name, size, type = gl.FLOAT, normalized = false)
-	{
-		/*
-		name : string, should match the attribute name used in the shader program.
-		data : array of data.
-		size : GLint, specifying size of attribute, must be \in {1,2,3,4}.
-		type : GLenum, specifying type of data.
-		normalized : GLboolean, true if attribute should be normalized.
-		*/
-		this.vertexAttributes[name] = {
-			"size" : size,
-			"type" : type,
-			"normalized" : normalized
-		};
+		this.SetupVertexAttributes();
 	}
 
 	buildGPUBuffers()
@@ -104,35 +57,45 @@ class Mesh{
 		gl.uniformMatrix4fv(ProjMatrixLoc, false, PMat);
 	}
 
-	BindBuffers()
-	{
-		gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuffer);
-		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
+	SetupVertexAttributes()
+	{		
+		this.BindBuffers();
+
+		this.vao = gl.createVertexArray();
+		gl.bindVertexArray(this.vao);
+
+		var a_position_loc = gl.getAttribLocation(this.shaderProgram, "a_position");	// look up where the vertex data needs to go.	
+		var a_normal_loc = gl.getAttribLocation(this.shaderProgram, "a_normal");	// look up where the vertex data needs to go.	
+		
+		gl.vertexAttribPointer(a_position_loc, 3, gl.FLOAT, false, 24, 0);	// Tell the attribute how to get data out of positionBuffer (ARRAY_BUFFER)
+		gl.vertexAttribPointer(a_normal_loc, 3, gl.FLOAT, false, 24, 12);	// Tell the attribute how to get data out of positionBuffer (ARRAY_BUFFER)
+		
+		gl.enableVertexAttribArray(a_position_loc);	// Turn on the attribute
+		gl.enableVertexAttribArray(a_normal_loc);	// Turn on the attribute
+
+	    gl.bindVertexArray(null);
 	}
 
-	SetVertexAttributes()
-	{		
-		//console.log("setting attributes");
-		for (const [key, value] of Object.entries(this.vertexAttributes)) {
-			var attribLoc = gl.getAttribLocation(this.shaderProgram, key);	// look up where the vertex data needs to go.
-			//console.log(key, attribLoc);
-			gl.enableVertexAttribArray(attribLoc);	// Turn on the attribute
-			gl.vertexAttribPointer(attribLoc, value.size, value.type, value.normalized, this.vertexStride, 0);	// Tell the attribute how to get data out of positionBuffer (ARRAY_BUFFER)
-		  }
+	BindBuffers(){
+		gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuffer);
+		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
 	}
 
 	Render()
 	{
 		gl.useProgram(this.shaderProgram);	// Tell it to use our program (pair of shaders)
+
 		this.SetUniforms();
+
+		gl.bindVertexArray(this.vao);
 		this.BindBuffers();
-		this.SetVertexAttributes();
-		
+
 		// draw
 		gl.drawElements(this.glPrimativeType, this.indices.length, gl.UNSIGNED_SHORT, 0);
 	}
 }
 
+/*
 class TextMesh{
 	constructor(transform, content, fontWidth = 16, color = new vec3(1,1,1), centered = false)
 	{		
@@ -244,9 +207,8 @@ class TextMesh{
 
 		this.SetUniforms();
 		this.BindBuffers();
-		this.SetAttributes();
+		gl.bindVertexArray(this.mesh.vao);
 
-		// draw
 		gl.drawElementsInstanced(this.mesh.glPrimativeType, this.mesh.indices.length, gl.UNSIGNED_SHORT, 0, this.content.length);
 	}
-}
+}*/
