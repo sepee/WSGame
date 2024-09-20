@@ -81,9 +81,9 @@ function drawFrame()
 
 	if(gameId === null)
 	{
-		const circleTransform = new Transform(new vec3(mousex, mousey, 0), new vec3(0,0,t*0.05), new vec3(25,25,25));
 		cubeMesh = new Mesh(cubeVertices, cubeIndices,  new Transform(new vec3((mousex/canvas.width*10 - 5)*3/2, 5 - mousey/canvas.height*10,), new vec3(0,0,0), new vec3(0.5,0.5,0.5)), programLit);
 	    cubeMesh.Render();
+		const circleTransform = new Transform(new vec3(mousex, mousey, 0), new vec3(0,0,t*0.05), new vec3(25,25,25));
 		var circleMesh = new Mesh(circleVertices, circleIndices, circleTransform, programDirect, attribs_pos2, gl.LINES);
 		circleMesh.Render();
 	}else{
@@ -91,6 +91,8 @@ function drawFrame()
 		for(let c in game.clients)
 		{
 			client = game.clients[c];
+			cubeMesh = new Mesh(cubeVertices, cubeIndices,  new Transform(new vec3((client.x/canvas.width*10 - 5)*3/2, 5 - client.y/canvas.height*10,), new vec3(0,0,0), new vec3(0.5,0.5,0.5)), programLit);
+	    	cubeMesh.Render();
 			const circleTransform = new Transform(new vec3(client.x, client.y, 0), new vec3(0,0,t*0.05), new vec3(25,25,25));
 			var circleMesh = new Mesh(circleVertices, circleIndices, circleTransform, programDirect, attribs_pos2, gl.LINES);
 			circleMesh.Render();
