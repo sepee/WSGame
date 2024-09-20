@@ -65,13 +65,13 @@ class Mesh{
 		gl.bindVertexArray(this.vao);
 
 		var a_position_loc = gl.getAttribLocation(this.shaderProgram, "a_position");	// look up where the vertex data needs to go.	
-		var a_normal_loc = gl.getAttribLocation(this.shaderProgram, "a_normal");	// look up where the vertex data needs to go.	
-		
 		gl.vertexAttribPointer(a_position_loc, 3, gl.FLOAT, false, 24, 0);	// Tell the attribute how to get data out of positionBuffer (ARRAY_BUFFER)
-		gl.vertexAttribPointer(a_normal_loc, 3, gl.FLOAT, false, 24, 12);	// Tell the attribute how to get data out of positionBuffer (ARRAY_BUFFER)
-		
 		gl.enableVertexAttribArray(a_position_loc);	// Turn on the attribute
+
+		var a_normal_loc = gl.getAttribLocation(this.shaderProgram, "a_normal");	// look up where the vertex data needs to go.	
+		gl.vertexAttribPointer(a_normal_loc, 3, gl.FLOAT, false, 24, 12);	// Tell the attribute how to get data out of positionBuffer (ARRAY_BUFFER)
 		gl.enableVertexAttribArray(a_normal_loc);	// Turn on the attribute
+
 
 	    gl.bindVertexArray(null);
 	}
