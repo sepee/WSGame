@@ -21,6 +21,11 @@ class Transform
 	}
 }
 
+attribs_pos_norm = [
+	{"name" : "a_position", size : 3, type : gl.FLOAT, normalized : false, stride : 24, offset : 0},
+	{"name" : "a_normal", size : 3, type : gl.FLOAT, normalized : true, stride : 24, offset : 12}
+ ]
+
 class Mesh{
 	constructor(vertices, indices, transform, shaderProgram, attributes = ["a_position"], vertexStride, glPrimativeType = gl.LINES, glDrawMode = gl.DYNAMIC_DRAW)
 	{
