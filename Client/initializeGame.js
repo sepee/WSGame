@@ -2,16 +2,21 @@ var canvas = document.querySelector("#c");
 
 var aspectRatio;
 
+function OnInit(){
+	gl = InitializeWebGLEnvironment();
+}
+
 function InitializeWebGLEnvironment()
 {
 	// Get A WebGL context
-	var gl = canvas.getContext("webgl2");
+	var gl = canvas.getContext("webgl2", {alpha: false});
 	
 	if (!gl) {
 		return;
 	}
 	
 	aspectRatio = canvas.width / canvas.height;
+	console.log("aspectRatio", aspectRatio)
 		
 	// Tell WebGL how to convert from clip space to pixels
 	gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
@@ -68,8 +73,6 @@ function createShaderPrograms(gl)
 	programDirect = CreateShaderProgramFromQS("#direct-vertex-shader", "#fragment-shader")
 	programText = CreateShaderProgramFromQS("#text-vertex-shader", "#text-fragment-shader")
 	programLit = CreateShaderProgramFromQS("#mvp-vertex-shader", "#lit-fragment-shader")
-	
-	return (programDirect != null);
 }
 
 // setup mouse movement callback
@@ -82,3 +85,4 @@ OnDragCanvas = function(event) {
 	};
   };
   
+OnInit();

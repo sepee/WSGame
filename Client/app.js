@@ -1,9 +1,6 @@
 const txtCursorPos = document.getElementById("txtCursorPos");
 canvas = document.getElementById("c")
 
-var xpos  = 0;
-var ypos = 0;
-
 // dragging controls
 function onMouseMove(event) {
 	getMousePos(canvas, event);
@@ -11,7 +8,7 @@ function onMouseMove(event) {
 
 var t = 0;
 var gl;
-var VMat;
+var ScreenToClipMat;
 
 var fontTexture = null;
 
@@ -42,31 +39,32 @@ LoadTexture = function(path){
 		return texture;
 }
 
-function main() {
-	gl = InitializeWebGLEnvironment();
-		
+function main() {		
 	// Set background colour
 	gl.clearColor(0.1, 0.1, 0.1, 1.0);
+
+	gl.enable(gl.CULL_FACE);	
+	gl.cullFace(gl.BACK);
 
 	gl.enable(gl.BLEND);
 	gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
 	gl.enable(gl.DEPTH_TEST);
 
-	var programs_compiled_success = createShaderPrograms(gl);
+	createShaderPrograms(gl);
 	
-	//squareMesh = new Mesh(squareVertices, squareIndices, new Transform(new vec3(320, 240, 0), new vec3(0,0,0), new vec3(10,10,10)), programDirect);
-
-	VMat = m4.multiply(m4.translation(-1,1), m4.scaling(2/canvas.width, -2/canvas.height));
+	ScreenToClipMat = m4.multiply(m4.translation(-1,1), m4.scaling(2/canvas.width, -2/canvas.height));
+	eyeTransform = new Transform(new vec3(0, 0, -5), new vec3(0,0,0), new vec3(1,1,1));
 	PMat = m4.perspective(degToRad(90), 3/2, 0.1, 100);
 
-	//tmTitle = new TextMesh(new Transform(new vec3(320,0,0), new vec3(0,0,0), new vec3(32,48,1)), "Centered TITLE!", 32, new vec3(1, 0.5, 0), true);
-	//tmSubtitle = new TextMesh(new Transform(new vec3(0,64,0), new vec3(0,0,0), new vec3(16,24,1)), "Hello World!", 16);
-	//tmInfo = new TextMesh(new Transform(new vec3(0,88,0), new vec3(0,0,0), new vec3(8,12,1)), "This text is 8x12 pixels... meaning any smaller text may lose ledgibility.", 8);
-	//tmCounter = new TextMesh(new Transform(new vec3(4,120,0), new vec3(0,0,0), new vec3(8,12,1)), "000", 8);
+	squareMesh = new Mesh(squareVertices, squareIndices, new Transform(new vec3(320, 240, 0), new vec3(0,0,0), new vec3(10,10,10)), programDirect, attribs_pos2, gl.LINES);
+
+	tmTitle = new TextMesh(new Transform(new vec3(320,0,0), new vec3(0,0,0), new vec3(32,48,1)), "Centered TITLE!", 32, new vec3(1, 0.5, 0), true);
+	tmSubtitle = new TextMesh(new Transform(new vec3(0,64,0), new vec3(0,0,0), new vec3(16,24,1)), "Hello World!", 16);
+	tmInfo = new TextMesh(new Transform(new vec3(0,88,0), new vec3(0,0,0), new vec3(8,12,1)), "This text is 8x12 pixels... meaning any smaller text may lose ledgibility.", 8);
+	tmCounter = new TextMesh(new Transform(new vec3(4,120,0), new vec3(0,0,0), new vec3(8,12,1)), "000", 8);
 
 	fontTexture = LoadTexture("/img/font8x12.png");
-
 
 	drawFrame();
 
@@ -74,21 +72,19 @@ function drawFrame()
 {
 	gl.clear(gl.COLOR_BUFFER_BIT);
 	
-	//tmTitle.Render();
-	//tmSubtitle.Render();
-	//tmInfo.Render();
-	//tmCounter.SetContent("t : " + t);
-	//tmCounter.Render();
+	gl.depthMask(true); // draw opaques here
 
-	//squareMesh.Render();
+	squareMesh.Render();
 
-	cubeMesh = new Mesh(cubeVertices, cubeIndices, new Transform(new vec3(0,0.25,-3), new vec3(0,t*0.01,0), new vec3(1,1,1)), programLit, ["a_position3", "a_normal"], 24, gl.TRIANGLES);
+	cubeMesh = new Mesh(cubeVertices, cubeIndices, new Transform(new vec3(0,0.25,0), new vec3(0,t*0.01,0), new vec3(1,1,1)), programLit);
 	cubeMesh.Render();
 
 	if(gameId === null)
 	{
-		const circleTransform = new Transform(new vec3(xpos, ypos, 0), new vec3(0,0,t*0.05), new vec3(25,25,25));
-		var circleMesh = new Mesh(circleVertices, circleIndices, circleTransform, programDirect);
+		const circleTransform = new Transform(new vec3(mousex, mousey, 0), new vec3(0,0,t*0.05), new vec3(25,25,25));
+		cubeMesh = new Mesh(cubeVertices, cubeIndices,  new Transform(new vec3((mousex/canvas.width*10 - 5)*3/2, 5 - mousey/canvas.height*10,), new vec3(0,0,0), new vec3(0.5,0.5,0.5)), programLit);
+	    cubeMesh.Render();
+		var circleMesh = new Mesh(circleVertices, circleIndices, circleTransform, programDirect, attribs_pos2, gl.LINES);
 		circleMesh.Render();
 	}else{
 
@@ -96,10 +92,18 @@ function drawFrame()
 		{
 			client = game.clients[c];
 			const circleTransform = new Transform(new vec3(client.x, client.y, 0), new vec3(0,0,t*0.05), new vec3(25,25,25));
-			var circleMesh = new Mesh(circleVertices, circleIndices, circleTransform, programDirect);
+			var circleMesh = new Mesh(circleVertices, circleIndices, circleTransform, programDirect, attribs_pos2, gl.LINES);
 			circleMesh.Render();
 		}
 	}
+
+	gl.depthMask(false); // draw transparents here
+	tmTitle.Render();
+	tmSubtitle.Render();
+	tmInfo.Render();
+	tmCounter.SetContent("t : " + t);
+	tmCounter.Render();
+
 
 	t += 1;
 	

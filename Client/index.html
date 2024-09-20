@@ -150,33 +150,35 @@
 
 <!-- ------------------------- Shaders ------------------------- -->
 
-<script  id="direct-vertex-shader" type="notjs">
+<script  id="direct-vertex-shader" type="notjs">#version 300 es
 
     // an attribute will receive data from a buffer
-    attribute vec4 a_position;
+    in vec4 a_position;
     uniform mat4 u_MMat;
-    uniform mat4 u_VMat;
+    uniform mat4 u_ScreenToClipMat;
   
-    varying vec4 color;
+    out vec4 color;
   
     // all shaders have a main function
     void main() 
     {
-      gl_Position = u_VMat * (u_MMat * a_position);
-      color = vec4(1.0, 1.0, 1.0, 1.0);
+        gl_Position = u_ScreenToClipMat * (u_MMat * a_position);
+        color = vec4(1.0, 1.0, 1.0, 1.0);
     }
   
 </script>
   
-<script  id="fragment-shader" type="notjs">
+<script  id="fragment-shader" type="notjs">#version 300 es
   
     // fragment shaders don't have a default precision so we need to pick one.
     precision lowp float;
   
-    varying vec4 color;
+    in vec4 color;
+
+    out vec4 fragCol;
   
     void main() {
-      gl_FragColor = color; 
+        fragCol = color; 
     }
 </script>
 
@@ -190,7 +192,7 @@
     in vec2 a_uv_offset;
 
     uniform mat4 u_MMat;
-    uniform mat4 u_VMat;
+    uniform mat4 u_ScreenToClipMat;
     uniform float u_font_size;
 
     out vec2 v_texCoord;
@@ -198,9 +200,12 @@
     // all shaders have a main function
     void main() 
     {
-      vec4 screenPos = u_VMat * (u_MMat * a_position + vec4(a_char_offset * u_font_size, 0.0, 0.0, 0.0));
+      vec4 screenPos = u_ScreenToClipMat * (u_MMat * a_position + vec4(a_char_offset * u_font_size, 0.0, 0.0, 0.0));
       gl_Position = screenPos;
       v_texCoord = vec2((a_position.x + a_uv_offset.x) / 16.0, (a_position.y + a_uv_offset.y) / 6.0);
+
+      //gl_Position = a_position;
+      //v_texCoord = a_position.xy;
     }
   
 </script>
@@ -218,7 +223,7 @@
     void main() 
     {
         vec4 texColor = texture(u_texture, v_texCoord); 
-        fragColor = texColor;
+        fragColor = vec4(texColor.xyz, texColor.z);
     }
 </script>
 
@@ -242,8 +247,10 @@
     void main() 
     {
         v_worldPos = (u_MMat * a_position);
-        gl_Position = u_PMat * u_MMat * a_position;
-        v_color = vec4(a_normal.xyz * 0.5 + 0.5, 1.0);
+        gl_Position = u_PMat * (u_VMat * (u_MMat * a_position));
+
+        float lighting = clamp(dot(a_normal, vec3(0.15,1.0,0.3)), 0.0, 1.0) * 0.5 + 0.5;
+        v_color = vec4(vec3(lighting), 1.0);
         v_normal = a_normal;
     }
   
@@ -270,7 +277,7 @@
 <!-- > RUN APP AFTER EVERYTHING ELSE IS LOADED <!-->
 <script src="linalg.js"></script>
 <script src="meshdata.js"></script>
-<script src="engineClasses.js"></script>
 <script src="initializeGame.js"></script>
+<script src="engineClasses.js"></script>
 <script src="input_manager.js"></script>
 <script src="app.js"></script>
