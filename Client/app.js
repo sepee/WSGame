@@ -76,7 +76,7 @@ function drawFrame()
 
 	squareMesh.Render();
 
-	cubeMesh = new Mesh(cubeVertices, cubeIndices, new Transform(new vec3(0,0.25,0), new vec3(0,t*0.01,0), new vec3(1,1,1)), programLit);
+	cubeMesh = new Mesh(cubeVertices, cubeIndices, new Transform(new vec3(0,0,0), new vec3(0,t*0.01,0), new vec3(1,1,1)), programLit);
 	cubeMesh.Render();
 
 	if(gameId === null)
