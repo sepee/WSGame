@@ -12,33 +12,6 @@ var ScreenToClipMat;
 
 var fontTexture = null;
 
-LoadTexture = function(path){
-		// Create a texture.
-		var texture = gl.createTexture();
-
-		// use texture unit 0
-		gl.activeTexture(gl.TEXTURE0 + 0);
-	
-		// bind to the TEXTURE_2D bind point of texture unit 0
-		gl.bindTexture(gl.TEXTURE_2D, texture);
-	
-		// Fill the texture with a 1x1 magenta pixel.
-		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE,
-						new Uint8Array([255, 0, 255, 255]));
-	
-		// Asynchronously load an image
-		var image = new Image();
-		image.src = path;
-		image.addEventListener('load', function() {
-			// Now that the image has loaded make copy it to the texture.
-			gl.bindTexture(gl.TEXTURE_2D, texture);
-			gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
-			gl.generateMipmap(gl.TEXTURE_2D);
-		});
-
-		return texture;
-}
-
 function main() {		
 	// Set background colour
 	gl.clearColor(0.1, 0.1, 0.1, 1.0);
@@ -53,7 +26,7 @@ function main() {
 
 	createShaderPrograms(gl);
 	
-	ScreenToClipMat = m4.multiply(m4.translation(-1,1), m4.scaling(2/canvas.width, -2/canvas.height));
+	ScreenToClipMat = m4.multiply(m4.translation(-1,1,0), m4.scaling(2/canvas.width, -2/canvas.height, 1));
 	eyeTransform = new Transform(new vec3(0, 0, -5), new vec3(0,0,0), new vec3(1,1,1));
 	PMat = m4.perspective(degToRad(90), 3/2, 0.1, 100);
 
@@ -70,6 +43,8 @@ function main() {
 
 function drawFrame()
 {
+	HandleKeyboardInput();
+
 	gl.clear(gl.COLOR_BUFFER_BIT);
 	
 	gl.depthMask(true); // draw opaques here
@@ -77,6 +52,9 @@ function drawFrame()
 	squareMesh.Render();
 
 	cubeMesh = new Mesh(cubeVertices, cubeIndices, new Transform(new vec3(0,0,0), new vec3(0,t*0.01,0), new vec3(1,1,1)), programLit);
+	cubeMesh.Render();
+
+	cubeMesh = new Mesh(cubeVertices, cubeIndices, new Transform(new vec3(10,10,-20), new vec3(0,t*0.05,0), new vec3(5,1,1)), programLit);
 	cubeMesh.Render();
 
 	if(gameId === null)
@@ -100,12 +78,12 @@ function drawFrame()
 	}
 
 	gl.depthMask(false); // draw transparents here
+
 	tmTitle.Render();
 	tmSubtitle.Render();
 	tmInfo.Render();
 	tmCounter.SetContent("t : " + t);
 	tmCounter.Render();
-
 
 	t += 1;
 	
@@ -117,6 +95,28 @@ function drawFrame()
 		main();
 	}
 	}
+}
+
+HandleKeyboardInput = function()
+{
+	speed = 0.1;
+	if(is_key_down('w'))
+		eyeTransform.Translate(new vec3(0,0,speed));
+
+	if(is_key_down('s'))
+		eyeTransform.Translate(new vec3(0,0,-speed));
+
+	if(is_key_down('d'))
+		eyeTransform.Translate(new vec3(speed,0,0));
+
+	if(is_key_down('a'))
+		eyeTransform.Translate(new vec3(-speed,0,0));
+
+	if(is_key_down('e'))
+		eyeTransform.Translate(new vec3(0,speed,0));
+
+	if(is_key_down('q'))
+		eyeTransform.Translate(new vec3(0,-speed,0));
 }
 
 var animate = true;

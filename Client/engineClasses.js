@@ -17,7 +17,12 @@ class Transform
 	}
 	CalculateMatrix(){
 		var rotationMat = m4.multiply(m4.yRotation(this.rot.y), m4.multiply(m4.xRotation(this.rot.x), m4.zRotation(this.rot.z)));
-		this.matrix = m4.multiply(m4.translation(this.pos.x, this.pos.y, this.pos.z),m4.multiply(m4.scaling(this.scale.x, this.scale.y, this.scale.z), rotationMat));
+		this.matrix = m4.multiply(m4.translation(this.pos.x, this.pos.y, this.pos.z),m4.multiply(rotationMat, m4.scaling(this.scale.x, this.scale.y, this.scale.z)));
+	}
+	Translate(v)
+	{
+		this.pos = new vec3(this.pos.x + v.x, this.pos.y + v.y, this.pos.z + v.z);
+		this.CalculateMatrix();
 	}
 }
 
@@ -65,7 +70,7 @@ class Mesh{
 	SetUniforms()
 	{
 		gl.uniformMatrix4fv(gl.getUniformLocation(this.shaderProgram, "u_MMat"), false, this.transform.matrix);
-		gl.uniformMatrix4fv(gl.getUniformLocation(this.shaderProgram, "u_VMat"), false, eyeTransform.matrix);
+		gl.uniformMatrix4fv(gl.getUniformLocation(this.shaderProgram, "u_VMat"), false, m4.inverse(eyeTransform.matrix));
 		gl.uniformMatrix4fv(gl.getUniformLocation(this.shaderProgram, "u_PMat"), false, PMat);
 		gl.uniformMatrix4fv(gl.getUniformLocation(this.shaderProgram, "u_ScreenToClipMat"), false, ScreenToClipMat);
 	}
