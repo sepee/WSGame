@@ -77,13 +77,20 @@ function createShaderPrograms(gl)
 
 // setup mouse movement callback
 OnDragCanvas = function(event) {
+	mouseDown = true;
 	document.addEventListener('mousemove', onMouseMove);
   
 	document.onmouseup = function() {
-	  document.removeEventListener('mousemove', onMouseMove);
-	  document.onmouseup = null;
+	 // document.removeEventListener('mousemove', onMouseMove);
+	 // document.onmouseup = null;
+	  mouseDown = false;
 	};
   };
+
+// dragging controls
+function onMouseMove(event) {
+	getMousePos(canvas, event);
+}
 
 LoadTexture = function(path){
 	// Create a texture.

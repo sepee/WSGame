@@ -17,6 +17,8 @@ var mousedy = 0;
 var mousexLast = 0;
 var mouseyLast = 0;
 
+mouseDown = false;
+
 getMousePos = function(canvas, event)
 {
 	var rect = canvas.getBoundingClientRect(); // abs. size of element
@@ -26,13 +28,13 @@ getMousePos = function(canvas, event)
 	mousex = (event.clientX - rect.left) * scaleX;   // scale mouse coordinates after they have
 	mousey = (event.clientY - rect.top) * scaleY;     // been adjusted to be relative to element
 
-	mousedx = mousex - mousexLast;
-	mousedy = mousey - mouseyLast;
+	mousedx = (event.movementX) * scaleX;
+	mousedy = (event.movementY) * scaleY;
 
 	mousexLast = mousex;
 	mouseyLast = mousey;
 
-	txtCursorPos.innerText = mousex + ", " + mousey;
+	txtCursorPos.innerText = mousedx + ", " + mousedy;
 
 	if(gameId){
 		const payLoad = {

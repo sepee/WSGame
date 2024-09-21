@@ -1,27 +1,34 @@
 
-class vec3{
-	constructor(x,y,z){
-		this.x = x;
-		this.y = y;
-		this.z = z;
-	}
-}
-
 class Transform
 {
-	constructor(pos, rot = vec3(0,0,0), scale = vec3(0,0,0)){
+	constructor(pos = [0,0,0], rot = [0,0,0], scale = [1,1,1]){
 		this.pos = pos;
 		this.rot = rot;
 		this.scale = scale;
 		this.CalculateMatrix();
 	}
-	CalculateMatrix(){
-		var rotationMat = m4.multiply(m4.yRotation(this.rot.y), m4.multiply(m4.xRotation(this.rot.x), m4.zRotation(this.rot.z)));
-		this.matrix = m4.multiply(m4.translation(this.pos.x, this.pos.y, this.pos.z),m4.multiply(rotationMat, m4.scaling(this.scale.x, this.scale.y, this.scale.z)));
-	}
-	Translate(v)
+	CalculateRotationMatrix()
 	{
-		this.pos = new vec3(this.pos.x + v.x, this.pos.y + v.y, this.pos.z + v.z);
+		this.rotationMatrix =m4.multiply(m4.yRotation(this.rot[1]), m4.multiply(m4.xRotation(this.rot[0]), m4.zRotation(this.rot[2])));
+	}
+	CalculateMatrix(){
+		this.CalculateRotationMatrix();
+		this.matrix = m4.multiply(m4.translation(this.pos[0], this.pos[1], this.pos[2]),m4.multiply(this.rotationMatrix, m4.scaling(this.scale[0], this.scale[1], this.scale[2])));
+	}
+	Translate(x,y,z,localSpace = false)
+	{
+		var v = [x,y,z];
+
+		if(localSpace)
+			v = m4.matVec3(this.rotationMatrix, v);
+
+		this.pos = m4.addVectors(this.pos, v);
+		this.CalculateMatrix();
+	}
+
+	Rotate(x,y,z)
+	{
+		this.rot = m4.addVectors(this.rot, [x,y,z]);
 		this.CalculateMatrix();
 	}
 }
@@ -70,7 +77,7 @@ class Mesh{
 	SetUniforms()
 	{
 		gl.uniformMatrix4fv(gl.getUniformLocation(this.shaderProgram, "u_MMat"), false, this.transform.matrix);
-		gl.uniformMatrix4fv(gl.getUniformLocation(this.shaderProgram, "u_VMat"), false, m4.inverse(eyeTransform.matrix));
+		gl.uniformMatrix4fv(gl.getUniformLocation(this.shaderProgram, "u_VMat"), false, m4.inverse(camTransform.matrix));
 		gl.uniformMatrix4fv(gl.getUniformLocation(this.shaderProgram, "u_PMat"), false, PMat);
 		gl.uniformMatrix4fv(gl.getUniformLocation(this.shaderProgram, "u_ScreenToClipMat"), false, ScreenToClipMat);
 	}
@@ -108,7 +115,7 @@ class Mesh{
 
 
 class TextMesh{
-	constructor(transform, content, fontWidth = 16, color = new vec3(1,1,1), centered = false)
+	constructor(transform, content, fontWidth = 16, color = [1,1,1], centered = false)
 	{		
 		var mesh = new Mesh(quadVerticesTS, quadIndicesTS, transform, programText, attribs_pos2, gl.TRIANGLE_STRIP, gl.STATIC_DRAW);
 		this.mesh = mesh;

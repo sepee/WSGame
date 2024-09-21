@@ -7,7 +7,6 @@
     <title>Document</title>
 </head>
 <body>
-    <image src="img/font8x12.png">
     <div id="serverConnected">Server : </div>
     <div id="serverConnection">
         <div>wss://wsgame-production.up.railway.app/:8080</div>
@@ -38,7 +37,7 @@
     <br>
 
     <div class="canvas-container">
-    <canvas id="c" width="640" height="480" onmousedown="OnDragCanvas(event)"> 
+    <canvas id="c" width="1280" height="720" onmousedown="OnDragCanvas(event)"> 
     </canvas>
     </div>
 
@@ -242,6 +241,7 @@
     out vec4 v_worldPos;
     out vec3 v_normal;
     out vec4 v_fragPos;
+
   
     // all shaders have a main function
     void main() 
@@ -252,6 +252,9 @@
         float lighting = clamp(dot(a_normal, vec3(0.15,1.0,0.3)), 0.0, 1.0) * 0.5 + 0.5;
         v_color = vec4(vec3(lighting), 1.0);
         v_normal = a_normal;
+
+        gl_PointSize = 32.0;
+
     }
   
 </script>

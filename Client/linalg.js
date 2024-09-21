@@ -147,6 +147,39 @@ function radToDeg(r) {
 	  dst[15] = b30 * a03 + b31 * a13 + b32 * a23 + b33 * a33;
 	  return dst;
 	}
+
+	/**
+	 * Returns the matrix-vector product Mv, including translation.
+	 * @param {Matrix4} M A matrix.
+	 * @param {Matrix4} v A vector.
+	 * @param {Matrix4} [dst] optional matrix to store result
+	 * @return {Vector3} dst or a new matrix if none provided
+	 * @memberOf module:webgl-3d-math
+	 */
+	function matVec3(M, v, dst) {
+		dst = dst || new MatType(3);
+		var M00 = M[0 * 4 + 0];
+		var M01 = M[0 * 4 + 1];
+		var M02 = M[0 * 4 + 2];
+		//var M03 = M[0 * 4 + 3];
+		var M10 = M[1 * 4 + 0];
+		var M11 = M[1 * 4 + 1];
+		var M12 = M[1 * 4 + 2];
+		//var M13 = M[1 * 4 + 3];
+		var M20 = M[2 * 4 + 0];
+		var M21 = M[2 * 4 + 1];
+		var M22 = M[2 * 4 + 2];
+		//var M23 = M[2 * 4 + 3];
+		var M30 = M[3 * 4 + 0];
+		var M31 = M[3 * 4 + 1];
+		var M32 = M[3 * 4 + 2];
+		//var M33 = M[3 * 4 + 3];
+		
+		dst[0] = v[0] * M00 + v[1] * M10 + v[2] * M20 + M30;
+		dst[1] = v[0] * M01 + v[1] * M11 + v[2] * M21 + M31;
+		dst[2] = v[0] * M02 + v[1] * M12 + v[2] * M22 + M32;
+		return dst;
+	  }
   
   
 	/**
@@ -1430,6 +1463,7 @@ function radToDeg(r) {
 	return {
 	  copy: copy,
 	  lookAt: lookAt,
+	  matVec3: matVec3,
 	  addVectors: addVectors,
 	  subtractVectors: subtractVectors,
 	  scaleVector: scaleVector,
